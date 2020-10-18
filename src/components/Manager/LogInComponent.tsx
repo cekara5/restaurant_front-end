@@ -1,9 +1,10 @@
 import React from "react";
 import { Alert, Button, Container, Form } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
-import api, { saveToken } from "../../api/api";
+import api, { saveToken, saveUser } from "../../api/api";
 import { ApiResponseType } from "../../types/dto/ApiResponseType";
 import { ManagerLoginType } from "../../types/ManagerLoginType";
+import { UserType } from "../../types/UserType";
 
 interface LoginComponentState {
     login: ManagerLoginType;
@@ -51,7 +52,7 @@ export class LoginComponent extends React.Component {
                             id="email"
                             value={this.state.login.email}
                             onChange={this.formInputChanged}
-
+                            required
                         />
                         <Form.Control.Feedback type="invalid">
                             Email cannot be empty.
@@ -107,6 +108,8 @@ export class LoginComponent extends React.Component {
                 } else {
                     console.log(res.data?.data);
                     saveToken(res.data?.data.token);
+                    const user = new UserType(res.data?.data.id, res.data?.data.email);
+                    saveUser(user);
                     this.setLoggedInState(true);
                 }
             }

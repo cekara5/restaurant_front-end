@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import { ApiConfig } from "../config/api.config";
 import { ApiResponseType, ServerErrorType } from "../types/dto/ApiResponseType";
+import { UserType } from "../types/UserType";
 
 export default function api(path: string, method: "get" | "post", body?: any) {
   return new Promise<ApiResponseType>((resolve) => {
@@ -89,6 +90,15 @@ function getToken(): string {
 export function saveToken(token: string): void {
   localStorage.setItem("AUTH_TOKEN", token);
 }
+export function saveUser(user: UserType): void {
+  console.log(user);
+  localStorage.setItem("USER", JSON.stringify(user));
+}
+export function getUser(): UserType | null {
+  const user = localStorage.getItem("USER");
+  return user ? JSON.parse(user) as UserType : null;
+}
+
 
 export function isLoggedIn() {
   if (localStorage.getItem("AUTH_TOKEN")) return true;

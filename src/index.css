@@ -45,3 +45,7 @@ code {
 #root .text-bold {
   font-weight: bold;
 }
+
+#root .option-choosetime {
+  width: auto;
+}

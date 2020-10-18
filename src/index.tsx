@@ -14,11 +14,15 @@ import HomePage from "./components/HomePage/HomePage";
 import LogOut from "./components/LogOutComponent/LogOutComponent";
 import { LoginComponent } from "./components/Manager/LogInComponent";
 import { RegisterCompopnent } from "./components/Manager/RegisterComponent";
+import { AddRestaurantComponent } from "./components/Restaurant/AddRestaurantComponent";
+import { AddWorkingTimeComponent } from "./components/Restaurant/AddWorkingTimeComponent";
 const menuLinks = [
   new MenuItem("Home", "/", ShowMenuItem.Always),
-  new MenuItem("Login", "/manager/login", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
-  new MenuItem("Register", "/manager/register", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
-  new MenuItem("Log out", "/logout", ShowMenuItem.Always, "right"), // ShowMenuItem.LoggedIn
+  new MenuItem("Prijava", "/manager/login", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
+  new MenuItem("Registracija", "/manager/register", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
+  new MenuItem("Dodavanje restorana", "/restaurant/add", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
+  new MenuItem("Dodaj radno vreme", "/restaurant/add-working-time", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
+  new MenuItem("Odjava", "/logout", ShowMenuItem.Always, "right"), // ShowMenuItem.LoggedIn
 ];
 
 ReactDOM.render(
@@ -30,6 +34,8 @@ ReactDOM.render(
 
         <Route path="/manager/login" component={LoginComponent}></Route>
         <Route path="/manager/register" component={RegisterCompopnent}></Route>
+        <Route path="/restaurant/add" component={AddRestaurantComponent}></Route>
+        <Route path="/restaurant/add-working-time" component={AddWorkingTimeComponent}></Route>
         <Route path="/logout" component={LogOut}></Route>
       </Switch>
     </HashRouter>
