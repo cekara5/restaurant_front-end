@@ -7,7 +7,7 @@ function HomePage() {
     <Container>
       <Row>
         <Col>
-
+          Aplikacija za rezervaciju restorana.
         </Col>
       </Row>
     </Container>

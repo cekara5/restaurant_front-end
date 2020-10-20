@@ -16,12 +16,22 @@ import { LoginComponent } from "./components/Manager/LogInComponent";
 import { RegisterCompopnent } from "./components/Manager/RegisterComponent";
 import { AddRestaurantComponent } from "./components/Restaurant/AddRestaurantComponent";
 import { AddWorkingTimeComponent } from "./components/Restaurant/AddWorkingTimeComponent";
+import { AddTablesComponent } from "./components/Restaurant/AddTablesComponent";
+import { RestaurantInfoComponent } from "./components/Restaurant/RestaurantInfoComponent";
+import { SearchRestaurantComponent } from "./components/Restaurant/SearchRestaurantComponent";
+import { AddReservationComponent } from "./components/Reservation/AddReservationComponent";
+import { CheckAvailableTablesComponent } from "./components/Restaurant/CheckAvailableTablesComponent";
+import { ReservationComponent } from "./components/Reservation/ReservationComponent";
+
 const menuLinks = [
   new MenuItem("Home", "/", ShowMenuItem.Always),
   new MenuItem("Prijava", "/manager/login", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
   new MenuItem("Registracija", "/manager/register", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
   new MenuItem("Dodavanje restorana", "/restaurant/add", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
   new MenuItem("Dodaj radno vreme", "/restaurant/add-working-time", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
+  new MenuItem("Dodaj stolove", "/restaurant/add-tables", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
+  new MenuItem("Restorani", "/restaurants", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
+  new MenuItem("Rezervacije", "/restaurant/reservations", ShowMenuItem.Always), // ShowMenuItem.NotLoggedIn
   new MenuItem("Odjava", "/logout", ShowMenuItem.Always, "right"), // ShowMenuItem.LoggedIn
 ];
 
@@ -36,6 +46,12 @@ ReactDOM.render(
         <Route path="/manager/register" component={RegisterCompopnent}></Route>
         <Route path="/restaurant/add" component={AddRestaurantComponent}></Route>
         <Route path="/restaurant/add-working-time" component={AddWorkingTimeComponent}></Route>
+        <Route path="/restaurant/add-tables" component={AddTablesComponent}></Route>
+        <Route path="/restaurant/reservation/check-available-tables/:id" component={CheckAvailableTablesComponent}></Route>
+        <Route path="/restaurant/reservation" component={AddReservationComponent}></Route>
+        <Route path="/restaurant/reservations" component={ReservationComponent}></Route>
+        <Route path="/restaurant/:id" component={RestaurantInfoComponent}></Route>
+        <Route path="/restaurants/" component={SearchRestaurantComponent}></Route>
         <Route path="/logout" component={LogOut}></Route>
       </Switch>
     </HashRouter>

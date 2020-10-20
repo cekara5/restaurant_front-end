@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import { ApiConfig } from "../config/api.config";
 import { ApiResponseType, ServerErrorType } from "../types/dto/ApiResponseType";
+import { ReservationData } from "../types/ReservationData";
 import { UserType } from "../types/UserType";
 
 export default function api(path: string, method: "get" | "post", body?: any) {
@@ -17,14 +18,8 @@ export default function api(path: string, method: "get" | "post", body?: any) {
     })
       .then((res) => responseHandler(res, resolve))
       .catch((err: ServerErrorType) => {
-        /*console.log(err);
-        let msg = err.error + ":\n";
-        if (typeof err.message === "string") {
-          msg += err.message;
-        }
-        else {
-          err.message.forEach(m => console.log(m));
-        }*/
+
+        // Bad Request Server Error
         const apiResponseType: ApiResponseType = {
           status: "serverError",
           /*data: {
@@ -97,6 +92,10 @@ export function saveUser(user: UserType): void {
 export function getUser(): UserType | null {
   const user = localStorage.getItem("USER");
   return user ? JSON.parse(user) as UserType : null;
+}
+export function getReservationData(): ReservationData | null {
+  const reservationData = localStorage.getItem("RESERVATION_DATA");
+  return reservationData ? JSON.parse(reservationData) as ReservationData : null;
 }
 
 

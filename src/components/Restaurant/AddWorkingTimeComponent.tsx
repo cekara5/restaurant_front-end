@@ -4,6 +4,8 @@ import { Redirect } from "react-router-dom";
 import api, { getUser } from "../../api/api";
 import { AddWorkingTimes } from "../../types/dto/AddWorkingTimes";
 import { ApiResponseType } from "../../types/dto/ApiResponseType";
+import { NonWorkingDaysDescType } from "../../types/dto/NonWorkingDayDescType";
+import { NonWorkingDayType } from "../../types/dto/NonWorkingDayType";
 import { WorkingTime } from "../../types/dto/WorkingTime";
 class DaysOfWeek {
     monday: WorkingTime;
@@ -28,11 +30,16 @@ interface AddWorkingTimeState {
     workingTimes: WorkingTime[];
     days: DaysOfWeek;
     workingTimeAdded: boolean;
+    nonWorkingDaysAdded: boolean;
     hours: string[];
     minutes: string[];
+    nonWorkingDays: NonWorkingDayType;
+    descriptionForNonWorkingDay: NonWorkingDaysDescType[];
     isUserLoggedIn: boolean;
-    errorMessage: string;
-    validated: boolean;
+    errorMessageNonWorkingDays: string;
+    errorMessageWorkingTime: string;
+    validatedNonWorkinDays: boolean;
+    validatedWorkingTime: boolean;
 }
 
 export class AddWorkingTimeComponent extends React.Component {
@@ -52,11 +59,16 @@ export class AddWorkingTimeComponent extends React.Component {
             workingTimes: [],
             days: new DaysOfWeek(),
             workingTimeAdded: false,
+            nonWorkingDaysAdded: false,
             isUserLoggedIn: true,
             hours: hours,
             minutes: ['00', '30'],
-            errorMessage: "",
-            validated: false,
+            nonWorkingDays: new NonWorkingDayType(),
+            descriptionForNonWorkingDay: [],
+            errorMessageNonWorkingDays: "",
+            errorMessageWorkingTime: "",
+            validatedNonWorkinDays: false,
+            validatedWorkingTime: false
         };
     }
 
@@ -64,10 +76,10 @@ export class AddWorkingTimeComponent extends React.Component {
         if (this.state.isUserLoggedIn === false) {
             return <Redirect to="/manager/login" />;
         }
-        if (this.state.workingTimeAdded) {
+        if (this.state.workingTimeAdded || this.state.nonWorkingDaysAdded) {
             return (
                 <Redirect
-                    to={"/"}
+                    to={"/restaurant/" + this.state.restourantId}
                 ></Redirect>
             );
         }
@@ -75,14 +87,15 @@ export class AddWorkingTimeComponent extends React.Component {
             <Container>
                 <Alert
                     variant="danger"
-                    className={this.state.errorMessage ? "" : "d-none"}
+                    className={this.state.errorMessageWorkingTime ? "" : "d-none"}
                 >
-                    {this.state.errorMessage}
+                    {this.state.errorMessageWorkingTime}
                 </Alert>
+                <h3>Dodavanje radnog vremena</h3>
                 <Form
                     noValidate
-                    validated={this.state.validated}
-                    onSubmit={this.handleSubmit}
+                    validated={this.state.validatedWorkingTime}
+                    onSubmit={this.handleWorkingTimeSubmit}
                 >
                     <Form.Group>
                         <Form.Label>Ponedeljak</Form.Label>
@@ -463,6 +476,55 @@ export class AddWorkingTimeComponent extends React.Component {
                         Sačuvati
                     </Button>
                 </Form>
+
+                <h3>Dodavanje neradnih dana restorana</h3>
+                <Alert
+                    variant="danger"
+                    className={this.state.errorMessageNonWorkingDays ? "" : "d-none"}
+                >
+                    {this.state.errorMessageNonWorkingDays}
+                </Alert>
+                <Form
+                    noValidate
+                    validated={this.state.validatedNonWorkinDays}
+                    onSubmit={this.handleNonWorkingDaysSubmit}
+                >
+                    <Form.Group>
+                        <Form.Label>Opis</Form.Label>
+                        <Form.Control
+                            as="select"
+                            custom
+                            id="descriptionId"
+                            className={"option-choosetime"}
+                            value={this.state.nonWorkingDays.descriptionId || ""}
+                            onChange={this.formInputChangedNonWorkingTime}
+                            required
+                        >
+                            <option value="">Izaberite opis</option>
+                            {this.state.descriptionForNonWorkingDay
+                                .map(desc => <option value={desc.id}>{desc.description}</option>)}
+                        </Form.Control>
+                    </Form.Group>
+
+                    <Form.Group>
+                        <Form.Label>Datum</Form.Label>
+                        <Form.Control
+                            type="date"
+                            custom
+                            id="date"
+                            className={"option-choosetime"}
+                            value={this.state.nonWorkingDays.date || ""}
+                            onChange={this.formInputChangedNonWorkingTime}
+                            required
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            Password cannot be empty.
+                        </Form.Control.Feedback>
+                    </Form.Group>
+                    <Button variant="primary" type="submit">
+                        Sačuvati
+                    </Button>
+                </Form>
             </Container>
         );
     }
@@ -486,13 +548,33 @@ export class AddWorkingTimeComponent extends React.Component {
                 console.log("greska");
             }
         });
+
+        // get non working days descriptions
+        api("utility/non-working-days-desc", "get").then((res: ApiResponseType) => {
+            if (res.status === "error" || res.status === "login") {
+                this.setLogginState(false);
+                console.log("greska");
+                return;
+            }
+            if (res.status === "ok") {
+                this.putNonWorkingDaysDescInState(res.data?.data);
+            } else {
+                console.log("greska");
+            }
+        });
+    }
+    private putNonWorkingDaysDescInState(descriptions: NonWorkingDaysDescType[]) {
+        const newState = Object.assign(this.state, {
+            descriptionForNonWorkingDay: descriptions
+        });
+        this.setState(newState);
     }
 
-    handleSubmit = (event: any) => {
+    handleWorkingTimeSubmit = (event: any) => {
         const form = event.currentTarget;
         event.preventDefault();
         if (form.checkValidity() === false) {
-            this.setFormValidate(true);
+            this.setFormValidateAddWorkingTime(true);
             return;
         }
 
@@ -501,6 +583,7 @@ export class AddWorkingTimeComponent extends React.Component {
         for (const day in this.state.days) {
             const workingTimeToAdd = (this.state.days as any)[day] as WorkingTime;
             workingTimeToAdd.restourantId = this.state.restourantId;
+            workingTimeToAdd.isWorking = true;
             addWorkingTimes.workingTimes.push(workingTimeToAdd);
         }
         console.log(addWorkingTimes);
@@ -511,12 +594,44 @@ export class AddWorkingTimeComponent extends React.Component {
 
             if (res.status === "ok") {
                 if (res.data?.status === "error") {
-                    this.setErrorMessage(res.data.message);
+                    this.setErrorMessageWorkingTime(res.data.message);
                 } else {
                     this.setWorkingTimesAddedState(true);
                 }
             } else if (res.status === "error") {
-                this.setErrorMessage("Server error");
+                this.setErrorMessageWorkingTime("Server error");
+            }
+
+        });
+    };
+
+    handleNonWorkingDaysSubmit = (event: any) => {
+        const form = event.currentTarget;
+        event.preventDefault();
+        if (form.checkValidity() === false) {
+            this.setFormValidateNonWorkingTime(true);
+            return;
+        }
+
+        const nonWorkingDaysToSend: NonWorkingDayType[] = [];
+        const nonWorkingDayToSend = this.state.nonWorkingDays;
+        nonWorkingDayToSend.restourantId = this.state.restourantId;
+        nonWorkingDaysToSend.push(nonWorkingDayToSend);
+        api("restourant/non-working-days/add", "post", { nonWorkingDays: nonWorkingDaysToSend }).then((res: ApiResponseType) => {
+            console.log(res)
+            if (res.status === "error" || res.status === "login") {
+                this.setLogginState(false);
+            }
+
+            if (res.status === "ok") {
+                if (res.data?.status === "error") {
+                    this.setErrorMessageNonWorkingDays(res.data.message);
+                } else {
+                    this.setNonWorkingDaysAddedState(true);
+                }
+            } else if (res.status === "error") {
+                this.setErrorMessageNonWorkingDays("Server error");
+                console.log(this.state);
             }
 
         });
@@ -545,6 +660,16 @@ export class AddWorkingTimeComponent extends React.Component {
         console.log(newState)
         this.setState(newState);
     };
+    private formInputChangedNonWorkingTime = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newWorkingDaysState = Object.assign(this.state.nonWorkingDays, {
+            [event.target.id]: event.target.value,
+        });
+        const newState = Object.assign(this.state, {
+            nonWorkingDays: newWorkingDaysState
+        });
+        this.setState(newState);
+        console.log(newState)
+    };
 
     private putRestourantIdInState(id: number) {
         const newState = Object.assign(this.state, {
@@ -552,24 +677,42 @@ export class AddWorkingTimeComponent extends React.Component {
         });
         this.setState(newState);
     }
-
-    private setErrorMessage(errorMessage: string) {
+    private setErrorMessageWorkingTime(errorMessage: string) {
         const newState = Object.assign(this.state, {
-            errorMessage: errorMessage,
+            errorMessageWorkingTime: errorMessage,
+        });
+        this.setState(newState);
+    }
+    private setErrorMessageNonWorkingDays(errorMessage: string) {
+        const newState = Object.assign(this.state, {
+            errorMessageNonWorkingDays: errorMessage,
+        });
+        this.setState(newState);
+    }
+    private setFormValidateAddWorkingTime(validated: boolean) {
+        const newState = Object.assign(this.state, {
+            validatedWorkingTime: validated,
         });
         this.setState(newState);
     }
 
-    private setFormValidate(validated: boolean) {
+    private setFormValidateNonWorkingTime(validated: boolean) {
         const newState = Object.assign(this.state, {
-            validated: validated,
+            validatedNonWorkinDays: validated,
         });
         this.setState(newState);
     }
 
     private setWorkingTimesAddedState(isAdded: boolean) {
         const newState = Object.assign(this.state, {
-            workingTimesAdded: isAdded
+            workingTimeAdded: isAdded
+        });
+        this.setState(newState);
+        console.log(newState)
+    }
+    private setNonWorkingDaysAddedState(isAdded: boolean) {
+        const newState = Object.assign(this.state, {
+            nonWorkingDaysAdded: isAdded
         });
         this.setState(newState);
         console.log(newState)

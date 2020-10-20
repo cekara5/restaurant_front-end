@@ -71,11 +71,11 @@ export class LoginComponent extends React.Component {
                         />
                         <Form.Control.Feedback type="invalid">
                             Password cannot be empty.
-            </Form.Control.Feedback>
+                        </Form.Control.Feedback>
                     </Form.Group>
                     <Button variant="primary" type="submit">
                         Log In
-          </Button>
+                    </Button>
                 </Form>
             </Container>
         );
