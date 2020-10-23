@@ -1,7 +1,6 @@
 import React from "react";
 import { Link, HashRouter } from "react-router-dom";
 import Nav from "react-bootstrap/Nav";
-import { isLoggedIn } from "../../api/api";
 import { Navbar } from "react-bootstrap";
 
 export enum ShowMenuItem {
@@ -25,6 +24,7 @@ export class MenuItem {
 }
 
 interface MainMenuProperties {
+  userLoggedIn: boolean;
   items: MenuItem[];
 }
 
@@ -40,7 +40,7 @@ export class MainMenu extends React.Component<MainMenuProperties> {
     super(props);
 
     this.state = {
-      isUserLoggedIn: true,
+      isUserLoggedIn: props.userLoggedIn,
       items: props.items,
     };
   }
@@ -53,15 +53,14 @@ export class MainMenu extends React.Component<MainMenuProperties> {
     this.setState(newState);
   }
 
-  componentWillMount() {
-    this.setLogginState(isLoggedIn());
+  componentDidUpdate(prevProps: MainMenuProperties) {
+    console.log('menu updated ' + prevProps.userLoggedIn + this.props.userLoggedIn);
+    if (prevProps.userLoggedIn !== this.props.userLoggedIn) {
+      this.setLogginState(this.props.userLoggedIn);
+    }
   }
 
-  setItems(items: MenuItem[]) {
-    this.setState({
-      items: items,
-    });
-  }
+
   render() {
     return (
       <Navbar bg="secondary" expand="sm">

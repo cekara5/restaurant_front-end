@@ -71,7 +71,7 @@ export class AddTablesComponent extends React.Component {
                             type="number"
                             className={"option-choosetime"}
                             placeholder="Broj stola"
-                            id="number"
+                            id="tableNumber"
                             value={this.state.table.tableNumber || ""}
                             onChange={this.formInputChanged}
                             required
@@ -184,7 +184,7 @@ export class AddTablesComponent extends React.Component {
         });
     };
 
-    componentWillMount() {
+    componentDidMount() {
         this.getAllData();
     }
 

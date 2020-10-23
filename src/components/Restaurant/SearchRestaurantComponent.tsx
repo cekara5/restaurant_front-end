@@ -56,7 +56,7 @@ export class SearchRestaurantComponent extends React.Component {
                     <Col>
                         <Table bordered hover>
                             <thead>
-                                <tr>
+                                <tr key="heading">
                                     <th>Ime</th>
                                     <th>Adresa</th>
                                     <th>Radno vreme</th>
@@ -67,7 +67,7 @@ export class SearchRestaurantComponent extends React.Component {
                             <tbody>
                                 {this.state.restaurants.map((r) => {
                                     return (
-                                        <tr>
+                                        <tr key={r.id}>
                                             <td>{r.name}</td>
                                             <td>{r.address + ", " + r.city}</td>
                                             <td>

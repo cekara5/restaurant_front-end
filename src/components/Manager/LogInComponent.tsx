@@ -6,17 +6,21 @@ import { ApiResponseType } from "../../types/dto/ApiResponseType";
 import { ManagerLoginType } from "../../types/ManagerLoginType";
 import { UserType } from "../../types/UserType";
 
+interface LoginComponentProps {
+    isLoggedInFunc: (loggedIn: boolean) => void
+}
 interface LoginComponentState {
     login: ManagerLoginType;
     isLoggedIn: boolean;
+    user?: UserType;
     errorMessage: string;
     validated: boolean;
 }
 
-export class LoginComponent extends React.Component {
-    state: LoginComponentState;
+export class LoginComponent extends React.Component<LoginComponentProps, LoginComponentState> {
+    //state: LoginComponentState;
 
-    constructor(props: Readonly<{}>) {
+    constructor(props: LoginComponentProps) {
         super(props);
         this.state = {
             login: { email: "", password: "" },
@@ -24,11 +28,13 @@ export class LoginComponent extends React.Component {
             errorMessage: "",
             validated: false,
         };
+        props.isLoggedInFunc(false); // odjavi korisnika
         console.log(this.state)
     }
 
     render() {
         if (this.state.isLoggedIn === true) {
+
             return <Redirect to="/"></Redirect>;
         }
         return (
@@ -45,7 +51,7 @@ export class LoginComponent extends React.Component {
                     onSubmit={this.handleSubmit}
                 >
                     <Form.Group>
-                        <Form.Label>Email address</Form.Label>
+                        <Form.Label>Email</Form.Label>
                         <Form.Control
                             type="email"
                             placeholder="Email"
@@ -55,12 +61,12 @@ export class LoginComponent extends React.Component {
                             required
                         />
                         <Form.Control.Feedback type="invalid">
-                            Email cannot be empty.
+                            Polje ne sme biti prazno.
             </Form.Control.Feedback>
                     </Form.Group>
 
                     <Form.Group>
-                        <Form.Label>Password</Form.Label>
+                        <Form.Label>Lozinka</Form.Label>
                         <Form.Control
                             type="password"
                             placeholder="Password"
@@ -70,11 +76,11 @@ export class LoginComponent extends React.Component {
                             required
                         />
                         <Form.Control.Feedback type="invalid">
-                            Password cannot be empty.
+                            Polje ne sme biti prazno.
                         </Form.Control.Feedback>
                     </Form.Group>
                     <Button variant="primary" type="submit">
-                        Log In
+                        Prijava
                     </Button>
                 </Form>
             </Container>
@@ -108,9 +114,12 @@ export class LoginComponent extends React.Component {
                 } else {
                     console.log(res.data?.data);
                     saveToken(res.data?.data.token);
-                    const user = new UserType(res.data?.data.id, res.data?.data.email);
+                    const user = new UserType(res.data?.data.id, res.data?.data.email, res.data?.data.restaurantId);
                     saveUser(user);
+                    this.setUserInState(user);
+                    console.log(user)
                     this.setLoggedInState(true);
+                    this.props.isLoggedInFunc(true);
                 }
             }
         });
@@ -134,6 +143,12 @@ export class LoginComponent extends React.Component {
         });
         this.setState(newState);
     }
+    private setUserInState(user: UserType) {
+        const newState = Object.assign(this.state, {
+            user: user,
+        });
+        this.setState(newState);
+    }
 
     private setErrorMessage(errorMessage: string) {
         const newState = Object.assign(this.state, {
@@ -151,3 +166,8 @@ export class LoginComponent extends React.Component {
 
 
 }
+/*
+LoginComponent.propTypes = {
+    isLoggedInFunc: React.PropTypes.func
+  };
+  */

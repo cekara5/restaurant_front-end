@@ -1,6 +1,6 @@
 import React from "react";
-import { Container } from "react-bootstrap";
-import api from "../../api/api";
+import { Container, Table } from "react-bootstrap";
+import api, { getUser } from "../../api/api";
 import { ApiResponseType } from "../../types/dto/ApiResponseType";
 import { RestourantInfoType } from "../../types/dto/RestaurantInfoType";
 
@@ -15,6 +15,7 @@ interface RestaurantInfoState {
     isUserLoggedIn: boolean;
     id: number;
     restaurantInfo?: RestourantInfoType;
+    isManagerViewing?: boolean;
     loading: boolean;
 }
 export class RestaurantInfoComponent extends React.Component {
@@ -24,9 +25,11 @@ export class RestaurantInfoComponent extends React.Component {
         this.state = {
             id: props.match.params.id, // from route param :id
             isUserLoggedIn: true,
-            loading: false
+            loading: false,
+            isManagerViewing: getUser()?.id === props.match.params.id
         }
     }
+
 
     render() {
         return !this.state.loading && (
@@ -47,29 +50,40 @@ export class RestaurantInfoComponent extends React.Component {
 
                 }</p>
                 <h5>Radno vreme</h5>
-
-                <div>
-                    <ul>
+                <Table bordered hover>
+                    <thead>
+                        <tr><th>Redni dan u nedelji</th><th>Otvara</th><th>Zatvara</th></tr>
+                    </thead>
+                    <tbody>
                         {this.state.restaurantInfo?.workingTimes?.map(wt => {
-                            return <li>{wt.dayOfWeekId + ", " + wt.openingTime + " - " + wt.closingTime}</li>
+                            return <tr>
+                                <td>{wt.dayOfWeekId}.</td>
+                                <td>{wt.openingTime.substring(0, 5)}</td>
+                                <td>{wt.closingTime.substring(0, 5)}</td>
+                            </tr>
                         })}
-                    </ul>
-                </div>
+                    </tbody>
+                </Table>
+
 
                 <h5>Neradni dani u godini</h5>
-
-                <div>
-                    <ul>
+                <Table bordered hover>
+                    <thead>
+                        <tr><th>Datum</th></tr>
+                    </thead>
+                    <tbody>
                         {this.state.restaurantInfo?.nonWorkingDays?.map(nwd => {
-                            return <li>{nwd.date}</li>
+                            return <tr>
+                                <td>{nwd.date}</td>
+                            </tr>
                         })}
-                    </ul>
-                </div>
+                    </tbody>
+                </Table>
 
                 <h5>Stolovi</h5>
 
                 <div>
-                    <table>
+                    <Table bordered hover>
                         <thead>
                             <tr><th>Broj stola</th><th>Broj osoba</th><th>Duzina rezervacije (u satima)</th><th>Opis</th></tr>
                         </thead>
@@ -78,7 +92,7 @@ export class RestaurantInfoComponent extends React.Component {
                                 return <tr><td>{t.tableNumber}</td><td>{t.capacity}</td><td>{t.maxHoursAvailable}</td><td></td></tr>
                             })}
                         </tbody>
-                    </table>
+                    </Table>
                 </div>
             </Container>
         );

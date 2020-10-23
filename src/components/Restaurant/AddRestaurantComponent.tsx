@@ -1,7 +1,7 @@
 import React from "react";
 import { Alert, Button, Container, Form } from "react-bootstrap";
 import { Redirect } from "react-router-dom";
-import api from "../../api/api";
+import api, { getUser, saveUser } from "../../api/api";
 import { ApiResponseType } from "../../types/dto/ApiResponseType";
 import { AddRestaurantType } from "../../types/dto/AddRestaurantType";
 import { CityType } from "../../types/dto/CityType";
@@ -9,9 +9,12 @@ import { CityType } from "../../types/dto/CityType";
 
 interface AddRestaurantState {
     restaurant: AddRestaurantType;
+    photo: any;
     cities: CityType[];
     restaurantAdded: boolean;
     restaurantAddedName: string;
+    restaurantAddedId: number;
+    //alreadyHasRestaurant: boolean;
     isUserLoggedIn: boolean;
     errorMessage: string;
     validated: boolean;
@@ -23,9 +26,12 @@ export class AddRestaurantComponent extends React.Component {
         super(props);
         this.state = {
             restaurant: new AddRestaurantType(),
+            photo: null,
             cities: [],
             restaurantAdded: false,
             restaurantAddedName: "",
+            restaurantAddedId: 0,
+            //alreadyHasRestaurant: false,
             isUserLoggedIn: true,
             errorMessage: "",
             validated: false,
@@ -36,6 +42,7 @@ export class AddRestaurantComponent extends React.Component {
         if (this.state.isUserLoggedIn === false) {
             return <Redirect to="/manager/login" />;
         }
+
         if (this.state.restaurantAdded) {
             return (
                 <Redirect
@@ -52,6 +59,7 @@ export class AddRestaurantComponent extends React.Component {
                     {this.state.errorMessage}
                 </Alert>
                 <Form
+                    id="addForm"
                     noValidate
                     validated={this.state.validated}
                     onSubmit={this.handleSubmit}
@@ -121,8 +129,8 @@ export class AddRestaurantComponent extends React.Component {
                     <Form.Group>
                         <Form.Label>Slika</Form.Label>
                         <Form.File
-                            id="confirmPassword"
-                            onChange={this.formInputChanged}
+                            id="photo"
+                            onChange={this.onFileChange}
                         />
                         <Form.Control.Feedback type="invalid">
                             Polje nije proslo proveru.
@@ -137,11 +145,27 @@ export class AddRestaurantComponent extends React.Component {
         );
     }
 
-    componentWillMount() {
+    componentDidMount() {
         this.getAllData();
     }
 
     getAllData() {
+        /* const userId = getUser()?.id;
+         api("manager/restourant/" + userId, "get").then((res: ApiResponseType) => {
+             if (res.status === "error" || res.status === "login") {
+                 this.setLogginState(false);
+                 console.log("greska");
+                 return;
+             }
+             if (res.status === "ok") {
+                 if (res.data?.data?.id !== null) {
+                     this.putAlreadyHasRestaurantInState(true);
+                 }
+             } else {
+                 console.log("greska");
+             }
+         });*/
+
         api("utility/cities", "get").then((res: ApiResponseType) => {
             if (res.status === "error" || res.status === "login") {
                 this.setLogginState(false);
@@ -175,6 +199,19 @@ export class AddRestaurantComponent extends React.Component {
             return;
         }
 
+        /*let myForm = document.getElementById('addForm');
+        let formData = myForm !== null ? new FormData(myForm as HTMLFormElement) : null;*/
+        let formData = new FormData();
+
+        /*formData.append("name", this.state.restaurant.name);
+        if (this.state.restaurant.hasOwnProperty('description')) {
+            formData.append("description", this.state.restaurant.description!);
+        }
+        formData.append("address", this.state.restaurant.address);
+        formData.append("cityId", this.state.restaurant.cityId.toString());
+        if (this.state.photo) {
+            formData.append("photo", this.state.photo, this.state.photo.name);
+        }*/
         api("restourant/add", "post", this.state.restaurant).then((res: ApiResponseType) => {
             if (res.status === "error" || res.status === "login") {
                 this.setLogginState(false);
@@ -184,7 +221,10 @@ export class AddRestaurantComponent extends React.Component {
                 if (res.data?.status === "error") {
                     this.setErrorMessage(res.data.message);
                 } else {
-                    this.setRestaurantAddedState(true, res.data?.data.name);
+                    let user = getUser();
+                    user!.restaurantId = res.data?.data.id;
+                    saveUser(user!);
+                    this.setRestaurantAddedState(true, res.data?.data.name, res.data?.data.id);
                 }
             } else if (res.status === "error") {
                 this.setErrorMessage("Server error");
@@ -204,6 +244,16 @@ export class AddRestaurantComponent extends React.Component {
         this.setState(newState);
     };
 
+    private onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newFile = event.target.files !== null ? event.target.files[0] : null;
+        const newState = Object.assign(this.state, {
+            [event.target.id]: newFile
+        });
+        console.log(newFile)
+        console.log(newState)
+        this.setState(newState);
+    };
+
     private setErrorMessage(errorMessage: string) {
         const newState = Object.assign(this.state, {
             errorMessage: errorMessage,
@@ -211,6 +261,12 @@ export class AddRestaurantComponent extends React.Component {
         this.setState(newState);
     }
 
+    private putAlreadyHasRestaurantInState(hasRestourant: boolean) {
+        const newState = Object.assign(this.state, {
+            alreadyHasRestaurant: hasRestourant,
+        });
+        this.setState(newState);
+    }
     private setFormValidate(validated: boolean) {
         const newState = Object.assign(this.state, {
             validated: validated,
@@ -218,10 +274,11 @@ export class AddRestaurantComponent extends React.Component {
         this.setState(newState);
     }
 
-    private setRestaurantAddedState(isAdded: boolean, restaurantAddedName: string) {
+    private setRestaurantAddedState(isAdded: boolean, restaurantAddedName: string, id: number) {
         const newState = Object.assign(this.state, {
             restaurantAdded: isAdded,
             restaurantAddedName: restaurantAddedName,
+            restaurantAddedId: id
         });
         this.setState(newState);
         console.log(newState)
